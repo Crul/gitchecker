@@ -1,5 +1,11 @@
 [![Travis build](https://travis-ci.org/Crul/gitchecker.svg?branch=dev)](https://travis-ci.org/Crul/gitchecker) 
 [![Coverage Status](https://coveralls.io/repos/github/Crul/gitchecker/badge.svg?branch=dev)](https://coveralls.io/github/Crul/gitchecker?branch=dev)
+[![pypi-version](https://img.shields.io/pypi/v/gitchecker.svg)](https://pypi.org/project/gitchecker/)
+[![pypi-wheel](https://img.shields.io/pypi/wheel/gitchecker.svg)](https://pypi.org/project/gitchecker/)
+[![pypi-format](https://img.shields.io/pypi/format/gitchecker.svg)](https://pypi.org/project/gitchecker/)
+[![pypi-pyversions](https://img.shields.io/pypi/pyversions/gitchecker.svg)](https://pypi.org/project/gitchecker/)
+[![pypi-implementation](https://img.shields.io/pypi/implementation/gitchecker.svg)](https://pypi.org/project/gitchecker/)
+[![pypi-status](https://img.shields.io/pypi/status/gitchecker.svg)](https://pypi.org/project/gitchecker/)
 # Python GIT tool to check pending changes 
 
 ```gitchecker.check_clean_status()``` checks if there is any pending changes 
