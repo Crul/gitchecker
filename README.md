@@ -6,6 +6,7 @@
 [![pypi-pyversions](https://img.shields.io/pypi/pyversions/gitchecker.svg)](https://pypi.org/project/gitchecker/)
 [![pypi-implementation](https://img.shields.io/pypi/implementation/gitchecker.svg)](https://pypi.org/project/gitchecker/)
 [![pypi-status](https://img.shields.io/pypi/status/gitchecker.svg)](https://pypi.org/project/gitchecker/)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/db52183d1abe4ae389fddbf9911c83b2)](https://www.codacy.com/app/Crul/gitchecker)
 # Python GIT tool to check pending changes 
 
 ```gitchecker.check_clean_status()``` checks if there is any pending changes 
