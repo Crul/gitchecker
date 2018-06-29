@@ -1,0 +1,1 @@
+from gitchecker.gitchecker import check_clean_status

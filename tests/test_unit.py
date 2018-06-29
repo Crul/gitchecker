@@ -1,7 +1,7 @@
 from unittest.mock import call, MagicMock, patch
 import pytest
 
-import gitchecker
+from gitchecker import gitchecker
 
 
 def _get_git_status(commit_sha="foo-commit-sha",
@@ -17,10 +17,10 @@ def _get_git_status(commit_sha="foo-commit-sha",
                                 total_changes)
 
 
-@patch("gitchecker._log_warning")
-@patch("gitchecker._log_and_raise_error")
-@patch("gitchecker._get_status_msg")
-@patch("gitchecker._get_git_status")
+@patch("gitchecker.gitchecker._log_warning")
+@patch("gitchecker.gitchecker._log_and_raise_error")
+@patch("gitchecker.gitchecker._get_status_msg")
+@patch("gitchecker.gitchecker._get_git_status")
 class TestUnitGitChecker_CheckCleanStatus:
 
     foo_commit_sha = "f00c0mm1t"
@@ -182,7 +182,7 @@ class TestUnitGitChecker_LogAndRaiseError:
         assert "ERROR: foo-msg" == str(ex.value)
         logger_mock.error.asser_has_been_called_once_with("foo-msg")
 
-    @patch("gitchecker.print")
+    @patch("gitchecker.gitchecker.print")
     def test_print(self, print_mock):
         # arrange
 
@@ -212,7 +212,7 @@ class TestUnitGitChecker_Log:
         # assert
         logger_mock.warning.assert_called_once_with(self.foo_msg)
 
-    @patch("gitchecker.print")
+    @patch("gitchecker.gitchecker.print")
     def test_print(self, print_mock):
         # arrange
 

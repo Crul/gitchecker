@@ -5,7 +5,7 @@ from unittest.mock import patch
 from git import Actor, Repo
 import pytest
 
-import gitchecker
+from gitchecker import gitchecker
 from tests.functional_config import FuncTestConfig, test_configs
 
 
@@ -20,7 +20,7 @@ def get_test_param_id(param):
     return "WARN" if param else "ERROR"
 
 
-@patch("gitchecker.print")
+@patch("gitchecker.gitchecker.print")
 class TestFunctionalGitChecker:
 
     repo_path = ""

@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="gitchecker",
-    version="1.1",
+    version="1.2",
     description="Python GIT tool to check pending changes",
     long_description=long_description,
     long_description_content_type="text/markdown",
