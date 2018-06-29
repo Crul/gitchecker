@@ -1,3 +1,12 @@
+"""
+Python GIT tool to check pending changes
+
+``gitchecker.check_clean_status()`` checks if there is any pending changes
+in GIT repository status and returns the last commit SHA (7 digits length).
+By default it raises an ``Exception`` if there are any pending changes but
+it can be configured to only show a warning instead.
+"""
+
 from collections import namedtuple
 from git import Repo  # http://gitpython.readthedocs.io/
 
@@ -6,6 +15,24 @@ def check_clean_status(repo_path="",
                        warning_instead_of_error=False,
                        ignore_untracked_files=False,
                        logger=None):
+
+    """checks if there is any pending changes in GIT repository status
+    and returns the last commit SHA (7 digits length)
+
+    Args:
+        repo_path (string): GIT repository path.
+        warning_instead_of_error (bool): By default ``check_clean_status``
+            raises an ``Exception`` if there are any pending changes unless
+        ignore_untracked_files (bool): If ``True``, untracked files will be
+            ignored completely, not raising errors and not showing warnings.
+        logger: If a ``logger`` is provided, it will be used only if it
+            has an ``error()`` or ``warning()`` method. The required
+            method depends on the value of ``warning_instead_of_error``.
+            If no ``logger`` provided or no proper log function exists
+            in ``logger`` , ``print()`` will be used instead.
+    Returns:
+        string: Last commit SHA (7 digits length).
+    """
 
     git_status = _get_git_status(repo_path, ignore_untracked_files)
 
