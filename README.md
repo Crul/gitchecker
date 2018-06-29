@@ -13,6 +13,12 @@ in GIT repository status and returns the last commit SHA (7 digits length).
 By default it raises an ```Exception``` if there are any pending changes but 
 it can be configured to only show a warning instead.
 
+## Install
+
+```
+pip install gitchecker
+```
+
 ## Demo Usage
 ```python
 import gitchecker
