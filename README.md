@@ -1,5 +1,5 @@
 # Python GIT tool to check pending changes 
-[![Travis build](https://travis-ci.org/Crul/gitchecker.svg?branch=master)](https://travis-ci.org/Crul/gitchecker)
+[![Travis build](https://travis-ci.org/Crul/gitchecker.svg?branch=dev)](https://travis-ci.org/Crul/gitchecker)
 
 ```gitchecker.check_clean_status()``` checks if there is any pending changes 
 in GIT repository status and returns the last commit SHA (7 digits length). 
