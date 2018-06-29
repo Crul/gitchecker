@@ -1,5 +1,6 @@
+[![Travis build](https://travis-ci.org/Crul/gitchecker.svg?branch=master)](https://travis-ci.org/Crul/gitchecker) 
+[![Coverage Status](https://coveralls.io/repos/github/Crul/gitchecker/badge.svg?branch=master)](https://coveralls.io/github/Crul/gitchecker?branch=master)
 # Python GIT tool to check pending changes 
-[![Travis build](https://travis-ci.org/Crul/gitchecker.svg?branch=master)](https://travis-ci.org/Crul/gitchecker)
 
 ```gitchecker.check_clean_status()``` checks if there is any pending changes 
 in GIT repository status and returns the last commit SHA (7 digits length). 
