@@ -1,0 +1,7 @@
+import tests.functional_config.deleted_staged_file_test
+import tests.functional_config.deleted_unstaged_file_test
+import tests.functional_config.new_staged_file_test
+import tests.functional_config.new_untracked_file_test
+import tests.functional_config.staged_file_test
+import tests.functional_config.unstaged_file_test
+from tests.functional_config.common import FuncTestConfig, test_configs
