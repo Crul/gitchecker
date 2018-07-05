@@ -7,6 +7,7 @@ By default it raises an ``Exception`` if there are any pending changes but
 it can be configured to only show a warning instead.
 """
 
+import re
 from collections import namedtuple
 from git import Repo  # http://gitpython.readthedocs.io/
 
@@ -14,6 +15,7 @@ from git import Repo  # http://gitpython.readthedocs.io/
 def check_clean_status(repo_path="",
                        warning_instead_of_error=False,
                        ignore_untracked_files=False,
+                       ignore_files_regex=None,
                        logger=None):
 
     """checks if there is any pending changes in GIT repository status
@@ -25,6 +27,8 @@ def check_clean_status(repo_path="",
             raises an ``Exception`` if there are any pending changes unless
         ignore_untracked_files (bool): If ``True``, untracked files will be
             ignored completely, not raising errors and not showing warnings.
+        ignore_files_regex (string): Files will be ignored if its path matches
+            the regex pattern.
         logger: If a ``logger`` is provided, it will be used only if it
             has an ``error()`` or ``warning()`` method. The required
             method depends on the value of ``warning_instead_of_error``.
@@ -34,7 +38,7 @@ def check_clean_status(repo_path="",
         string: Last commit SHA (7 digits length).
     """
 
-    git_status = _get_git_status(repo_path, ignore_untracked_files)
+    git_status = _get_git_status(repo_path, ignore_files_regex, ignore_untracked_files)
 
     if git_status.total_changes:
         status_msg = _get_status_msg(git_status)
@@ -53,13 +57,17 @@ GitStatus = namedtuple("GitStatus", ["commit_sha",
                                      "total_changes"])
 
 
-def _get_git_status(repo_path="", ignore_untracked_files=False):
+def _get_git_status(repo_path="", ignore_files_regex=None, ignore_untracked_files=False):
     repo = Repo(repo_path)
 
-    commit_sha = repo.git.rev_parse(repo.head.commit.hexsha, short=7)
-    staged_files    = len(repo.index.diff("HEAD"))
-    unstaged_files  = len(repo.index.diff(None))
-    untracked_files = len(repo.untracked_files)
+    commit_sha      = repo.git.rev_parse(repo.head.commit.hexsha, short=7)
+
+    filter_diff_fn  = lambda df: __filter_diff_file(df, ignore_files_regex)
+    staged_files    = __filter_diff(repo.index.diff("HEAD"), filter_diff_fn)
+    unstaged_files  = __filter_diff(repo.index.diff(None), filter_diff_fn)
+
+    filter_files_fn = lambda df: __filter_filename(df, ignore_files_regex)
+    untracked_files = __filter_diff(repo.untracked_files, filter_files_fn)
 
     total_changes = staged_files + unstaged_files
 
@@ -71,6 +79,21 @@ def _get_git_status(repo_path="", ignore_untracked_files=False):
                      unstaged_files,
                      untracked_files,
                      total_changes)
+
+
+def __filter_diff(diff, filter_diff_fn):
+    return len(list(filter(filter_diff_fn, list(diff))))
+
+
+def __filter_diff_file(diff_file, ignore_files_regex=None):
+    return (__filter_filename(diff_file.a_path, ignore_files_regex) and
+            __filter_filename(diff_file.b_path, ignore_files_regex))
+
+
+def __filter_filename(filename, ignore_files_regex=None):
+    return (not ignore_files_regex or
+            not filename or
+            not re.match(ignore_files_regex, filename))
 
 
 STATUS_MSG_TMPL = "There are " +\
