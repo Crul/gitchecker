@@ -1,5 +1,9 @@
+import tests.functional_config.no_changes
 import tests.functional_config.deleted_staged_file_test
 import tests.functional_config.deleted_unstaged_file_test
+import tests.functional_config.ignore_files_regex_basic
+import tests.functional_config.ignore_files_regex_complex
+import tests.functional_config.ignore_untracked
 import tests.functional_config.new_staged_file_test
 import tests.functional_config.new_untracked_file_test
 import tests.functional_config.staged_file_test

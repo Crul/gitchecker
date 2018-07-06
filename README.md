@@ -26,6 +26,7 @@ import gitchecker
 commit_sha = gitchecker.check_clean_status(repo_path="",
                                            warning_instead_of_error=False,
                                            ignore_untracked_files=False,
+                                           ignore_files_regex=None,
                                            logger=None)
 print("commit", commit_sha)
 ```
@@ -36,7 +37,8 @@ or ```warning()``` method. The required method depends on the value of
 ```warning_instead_of_error```. If no ```logger``` provided or no proper 
 log function exists in ```logger``` , ```print()``` will be used instead.
 
-Ignoring untracked files (```ignore_untracked_files=True```) will ignore them completely, 
+Ignoring untracked files (```ignore_untracked_files=True```) or 
+Ignoring by regex (```ignore_files_regex```) will ignore them completely,
 not raising errors and not showing warnings.
 
 ## Testing

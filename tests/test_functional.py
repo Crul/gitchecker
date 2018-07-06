@@ -48,52 +48,78 @@ class TestFunctionalGitChecker:
 
         # arrange
         commit_sha = "foo-value"
-        expected_commit_sha = self._get_expected_commit_sha(is_warning)
+        expected_total_changes = self._get_total_changes(test_config.expected_results)
+        expected_commit_sha = self._get_expected_commit_sha(is_warning, expected_total_changes)
 
         # act
-        commit_sha, exception = self._act(is_warning)
+        commit_sha, exception = self._act(is_warning, expected_total_changes, test_config)
 
         # test teardown
         assert expected_commit_sha == commit_sha
-        self._assert_warning_or_error(test_config.expected_results,
-                                      exception,
-                                      print_mock,
-                                      is_warning)
+        self._assert(test_config.expected_results,
+                     expected_total_changes,
+                     exception,
+                     print_mock,
+                     is_warning)
 
         # teardown
         test_config.teardown(self, test_config_state)
 
-    def _get_expected_commit_sha(self, is_warning):
-        if is_warning:
+    def _get_expected_commit_sha(self, is_warning, expected_total_changes):
+        if is_warning or not expected_total_changes:
             return self.repo.head.commit.hexsha[:7]
 
         return None
 
-    def _act(self, is_warning):
-        if is_warning:
+    def _act(self, is_warning, expected_total_changes, test_config):
+        ignore_untracked_files = test_config.ignore_untracked_files
+        ignore_files_regex = test_config.ignore_files_regex
+        warning_instead_of_error = is_warning
+
+        if is_warning or not expected_total_changes:
             commit_sha =\
-                gitchecker.check_clean_status(self.repo_path, warning_instead_of_error=True)
+                gitchecker.check_clean_status(self.repo_path,
+                                              warning_instead_of_error,
+                                              ignore_untracked_files,
+                                              ignore_files_regex)
 
             return commit_sha, None
 
         with pytest.raises(Exception) as ex:
-            commit_sha = gitchecker.check_clean_status(self.repo_path)
+            commit_sha =\
+                gitchecker.check_clean_status(self.repo_path,
+                                              warning_instead_of_error,
+                                              ignore_untracked_files,
+                                              ignore_files_regex)
 
             return commit_sha, None
 
         return None, ex
 
-    def _assert_warning_or_error(self, expected_results, exception, print_mock, is_warning):
-        expected_print_msg, expected_ex_msg = self._get_msgs(expected_results, is_warning)
-        print_mock.assert_called_once_with(expected_print_msg)
-        if is_warning:
-            assert exception is None
+    def _assert(self, expected_results, expected_total_changes, exception, print_mock, is_warning):
+        if expected_total_changes:
+            expected_print_msg, expected_ex_msg = self._get_msgs(expected_results, is_warning)
+            print_mock.assert_called_once_with(expected_print_msg)
+            if is_warning:
+                assert exception is None
+            else:
+                assert expected_ex_msg == str(exception.value)
+
         else:
-            assert expected_ex_msg == str(exception.value)
+            print_mock.assert_not_called()
+            assert exception is None
 
     @classmethod
-    def _create_foo_file(cls):
-        filename = "{}.txt".format(str(time() * 1000))
+    def _get_total_changes(cls, expected_results):
+        return (expected_results.staged_files +
+                expected_results.unstaged_files +
+                expected_results.untracked_files)
+
+    @classmethod
+    def _create_foo_file(cls, filename=None):
+        if not filename:
+            filename = "{}.txt".format(str(time() * 1000))
+
         cls._write_file(filename, "foo")
 
         return filename
