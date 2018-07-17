@@ -4,13 +4,13 @@ import pytest
 from gitchecker import gitchecker
 
 
-def _get_git_status(commit_sha="foo-commit-sha",
+def _get_git_status(commit_info="foo-commit-info",
                     staged_files="foo-staged-files",
                     unstaged_files="foo-unstaged-files",
                     untracked_files="foo-untracked-files",
                     total_changes=0):
 
-    return gitchecker.GitStatus(commit_sha,
+    return gitchecker.GitStatus(commit_info,
                                 staged_files,
                                 unstaged_files,
                                 untracked_files,
@@ -23,7 +23,7 @@ def _get_git_status(commit_sha="foo-commit-sha",
 @patch("gitchecker.gitchecker._get_git_status")
 class TestUnitGitChecker_CheckCleanStatus:
 
-    foo_commit_sha = "f00c0mm1t"
+    foo_commit_info = "foo-commit-info"
     foo_repo_path = "foo/repo/path"
     foo_wioe = "foo-warning-instead-of-error"
     foo_iuf = "foo-ignore-untracked-files"
@@ -36,17 +36,17 @@ class TestUnitGitChecker_CheckCleanStatus:
                              _log_and_raise_error_mock,
                              _log_warning_mock):
         # arrange
-        _get_git_status_mock.return_value = _get_git_status(self.foo_commit_sha)
+        _get_git_status_mock.return_value = _get_git_status(self.foo_commit_info)
 
         # act
-        commit_sha = gitchecker.check_clean_status(self.foo_repo_path,
-                                                   self.foo_wioe,
-                                                   self.foo_iuf,
-                                                   self.foo_ifr,
-                                                   self.foo_logger)
+        commit_info = gitchecker.check_status_and_get_commit_info(self.foo_repo_path,
+                                                                  self.foo_wioe,
+                                                                  self.foo_iuf,
+                                                                  self.foo_ifr,
+                                                                  self.foo_logger)
 
         # assert
-        assert commit_sha is self.foo_commit_sha
+        assert commit_info is self.foo_commit_info
         _get_git_status_mock.assert_called_once_with(self.foo_repo_path, self.foo_ifr, self.foo_iuf)
         _get_status_msg_mock.assert_not_called()
         _log_and_raise_error_mock.assert_not_called()
@@ -58,20 +58,20 @@ class TestUnitGitChecker_CheckCleanStatus:
                                       _log_and_raise_error_mock,
                                       _log_warning_mock):
         # arrange
-        foo_git_status = _get_git_status(self.foo_commit_sha, total_changes=1)
+        foo_git_status = _get_git_status(self.foo_commit_info, total_changes=1)
         _get_git_status_mock.return_value = foo_git_status
         foo_status_msg = "foo-status-msg"
         _get_status_msg_mock.return_value = foo_status_msg
 
         # act
-        commit_sha = gitchecker.check_clean_status(self.foo_repo_path,
-                                                   True,
-                                                   self.foo_iuf,
-                                                   self.foo_ifr,
-                                                   self.foo_logger)
+        commit_info = gitchecker.check_status_and_get_commit_info(self.foo_repo_path,
+                                                                  True,
+                                                                  self.foo_iuf,
+                                                                  self.foo_ifr,
+                                                                  self.foo_logger)
 
         # assert
-        assert self.foo_commit_sha is commit_sha
+        assert self.foo_commit_info is commit_info
         _get_git_status_mock.assert_called_once_with(self.foo_repo_path, self.foo_ifr, self.foo_iuf)
         _get_status_msg_mock.assert_called_once_with(foo_git_status)
         _log_and_raise_error_mock.assert_not_called()
@@ -83,20 +83,20 @@ class TestUnitGitChecker_CheckCleanStatus:
                                     _log_and_raise_error_mock,
                                     _log_warning_mock):
         # arrange
-        foo_git_status = _get_git_status(self.foo_commit_sha, total_changes=1)
+        foo_git_status = _get_git_status(self.foo_commit_info, total_changes=1)
         _get_git_status_mock.return_value = foo_git_status
         foo_status_msg = "foo-status-msg"
         _get_status_msg_mock.return_value = foo_status_msg
 
         # act
-        commit_sha = gitchecker.check_clean_status(self.foo_repo_path,
-                                                   False,
-                                                   self.foo_iuf,
-                                                   self.foo_ifr,
-                                                   self.foo_logger)
+        commit_info = gitchecker.check_status_and_get_commit_info(self.foo_repo_path,
+                                                                  False,
+                                                                  self.foo_iuf,
+                                                                  self.foo_ifr,
+                                                                  self.foo_logger)
 
         # assert
-        assert self.foo_commit_sha is commit_sha
+        assert self.foo_commit_info is commit_info
         _get_git_status_mock.assert_called_once_with(self.foo_repo_path, self.foo_ifr, self.foo_iuf)
         _get_status_msg_mock.assert_called_once_with(foo_git_status)
         _log_and_raise_error_mock.assert_called_once_with(foo_status_msg, self.foo_logger)
@@ -129,39 +129,43 @@ class TestUnitGitChecker_GetGitStatus:
     def test_not_ignoring(self, RepoMock):
         # arrange
         repo_mock = self._arrange_repo_mock(RepoMock)
+        foo_commit_info = self._arrange_foo_commit_info(repo_mock)
 
         # act
         git_status = gitchecker._get_git_status(self.foo_repo_path)
 
         # assert
         expected_total_changes = 15
-        self._assert(RepoMock, repo_mock, git_status, expected_total_changes)
+        self._assert(RepoMock, repo_mock, git_status, foo_commit_info, expected_total_changes)
 
     def test_ignoring_untracked_files(self, RepoMock):
         # arrange
         repo_mock = self._arrange_repo_mock(RepoMock)
+        foo_commit_info = self._arrange_foo_commit_info(repo_mock)
 
         # act
         git_status = gitchecker._get_git_status(self.foo_repo_path, ignore_untracked_files=True)
 
         # assert
         expected_total_changes = 8
-        self._assert(RepoMock, repo_mock, git_status, expected_total_changes)
+        self._assert(RepoMock, repo_mock, git_status, foo_commit_info, expected_total_changes)
 
     def test_ignoring_files_regex(self, RepoMock):
         # arrange
         ignore_files_regex = "^foo-(staged|unstaged|untracked)\/file-[23]\.py$"
         repo_mock = self._arrange_repo_mock(RepoMock)
+        foo_commit_info = self._arrange_foo_commit_info(repo_mock)
 
         # act
         git_status = gitchecker._get_git_status(self.foo_repo_path,
                                                 ignore_files_regex=ignore_files_regex)
 
         # assert
-        expected_git_status = _get_git_status(self.foo_commit_sha, 2, 3, 5, 10)
+        expected_git_status = _get_git_status(foo_commit_info, 2, 3, 5, 10)
         self._assert(RepoMock,
                      repo_mock,
                      git_status,
+                     foo_commit_info,
                      expected_git_status=expected_git_status)
 
     def _arrange_repo_mock(self, RepoMock):
@@ -174,10 +178,20 @@ class TestUnitGitChecker_GetGitStatus:
 
         return repo_mock
 
+    def _arrange_foo_commit_info(self, repo_mock):
+        last_commit_mock = repo_mock.head.commit
+
+        return gitchecker.CommitInfo(self.foo_commit_sha,
+                                     last_commit_mock.author.name,
+                                     last_commit_mock.authored_datetime,
+                                     last_commit_mock.committer.name,
+                                     last_commit_mock.committed_datetime)
+
     def _assert(self,
                 RepoMock,
                 repo_mock,
                 git_status,
+                foo_commit_info,
                 expected_total_changes=None,
                 expected_git_status=None):
 
@@ -185,7 +199,7 @@ class TestUnitGitChecker_GetGitStatus:
 
         if not expected_git_status:
             expected_git_status = \
-                _get_git_status(self.foo_commit_sha, 3, 5, 7, expected_total_changes)
+                _get_git_status(foo_commit_info, 3, 5, 7, expected_total_changes)
 
         assert expected_git_status == git_status
         expected_diff_calls = [call("HEAD"), call(None)]

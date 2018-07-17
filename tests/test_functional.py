@@ -31,7 +31,7 @@ class TestFunctionalGitChecker:
         self.repo = Repo(self.repo_path)
 
         try:
-            gitchecker.check_clean_status(self.repo_path)
+            gitchecker.check_status_and_get_commit_info(self.repo_path)
         except Exception:
             raise Exception("TestFunctionalGitChecker: " +
                             "git status should be clean before executing functional testing")
@@ -47,15 +47,19 @@ class TestFunctionalGitChecker:
         test_config_state = test_config.setup(self)
 
         # arrange
-        commit_sha = "foo-value"
+        commit_info = "foo-value"
         expected_total_changes = self._get_total_changes(test_config.expected_results)
-        expected_commit_sha = self._get_expected_commit_sha(is_warning, expected_total_changes)
+        expected_commit_info = self._get_expected_commit_info(is_warning, expected_total_changes)
 
         # act
-        commit_sha, exception = self._act(is_warning, expected_total_changes, test_config)
+        commit_info, exception = self._act(is_warning, expected_total_changes, test_config)
 
-        # test teardown
-        assert expected_commit_sha == commit_sha
+        # assert
+        if expected_commit_info:
+            assert expected_commit_info.sha == commit_info.sha
+        else:
+            assert None is commit_info
+
         self._assert(test_config.expected_results,
                      expected_total_changes,
                      exception,
@@ -65,9 +69,13 @@ class TestFunctionalGitChecker:
         # teardown
         test_config.teardown(self, test_config_state)
 
-    def _get_expected_commit_sha(self, is_warning, expected_total_changes):
+    def _get_expected_commit_info(self, is_warning, expected_total_changes):
         if is_warning or not expected_total_changes:
-            return self.repo.head.commit.hexsha[:7]
+            return gitchecker.CommitInfo(self.repo.head.commit.hexsha[:7],
+                                         None,
+                                         None,
+                                         None,
+                                         None)
 
         return None
 
@@ -77,22 +85,22 @@ class TestFunctionalGitChecker:
         warning_instead_of_error = is_warning
 
         if is_warning or not expected_total_changes:
-            commit_sha =\
-                gitchecker.check_clean_status(self.repo_path,
-                                              warning_instead_of_error,
-                                              ignore_untracked_files,
-                                              ignore_files_regex)
+            commit_info =\
+                gitchecker.check_status_and_get_commit_info(self.repo_path,
+                                                            warning_instead_of_error,
+                                                            ignore_untracked_files,
+                                                            ignore_files_regex)
 
-            return commit_sha, None
+            return commit_info, None
 
         with pytest.raises(Exception) as ex:
-            commit_sha =\
-                gitchecker.check_clean_status(self.repo_path,
-                                              warning_instead_of_error,
-                                              ignore_untracked_files,
-                                              ignore_files_regex)
+            commit_info =\
+                gitchecker.check_status_and_get_commit_info(self.repo_path,
+                                                            warning_instead_of_error,
+                                                            ignore_untracked_files,
+                                                            ignore_files_regex)
 
-            return commit_sha, None
+            return commit_info, None
 
         return None, ex
 

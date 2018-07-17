@@ -1,8 +1,13 @@
 """
-Python GIT tool to check pending changes
+Python GIT tool to check pending changes and get last commit info
 
-``gitchecker.check_clean_status()`` checks if there is any pending changes
-in GIT repository status and returns the last commit SHA (7 digits length).
+``gitchecker.check_status_and_get_commit_info()`` checks if there is
+any pending changes in GIT repository status and returns the last commit info:
+    - sha (string): commit SHA (7 digits length)
+    - author (string): author name
+    - authored_datetime (datetime): author datetime
+    - committer (string): committer name
+    - committed_datetime (datetime): committer datetime
 By default it raises an ``Exception`` if there are any pending changes but
 it can be configured to only show a warning instead.
 """
@@ -12,19 +17,19 @@ from collections import namedtuple
 from git import Repo  # http://gitpython.readthedocs.io/
 
 
-def check_clean_status(repo_path="",
-                       warning_instead_of_error=False,
-                       ignore_untracked_files=False,
-                       ignore_files_regex=None,
-                       logger=None):
+def check_status_and_get_commit_info(repo_path="",
+                                     warning_instead_of_error=False,
+                                     ignore_untracked_files=False,
+                                     ignore_files_regex=None,
+                                     logger=None):
 
-    """checks if there is any pending changes in GIT repository status
-    and returns the last commit SHA (7 digits length)
+    """checks if there is any pending changes in GIT
+    repository status and returns the last commit info
 
     Args:
         repo_path (string): GIT repository path.
-        warning_instead_of_error (bool): By default ``check_clean_status``
-            raises an ``Exception`` if there are any pending changes unless
+        warning_instead_of_error (bool): By default an ``Exception`` is raised
+            if there are any pending changes unless this param is truthy
         ignore_untracked_files (bool): If ``True``, untracked files will be
             ignored completely, not raising errors and not showing warnings.
         ignore_files_regex (string): Files will be ignored if its path matches
@@ -35,7 +40,12 @@ def check_clean_status(repo_path="",
             If no ``logger`` provided or no proper log function exists
             in ``logger`` , ``print()`` will be used instead.
     Returns:
-        string: Last commit SHA (7 digits length).
+        (CommitInfo) Last commit info in a namedtuple format:
+            - sha (string): commit SHA (7 digits length)
+            - author (string): author name
+            - authored_datetime (datetime): author datetime
+            - committer (string): committer name
+            - committed_datetime (datetime): committer datetime
     """
 
     git_status = _get_git_status(repo_path, ignore_files_regex, ignore_untracked_files)
@@ -47,20 +57,31 @@ def check_clean_status(repo_path="",
         else:
             _log_and_raise_error(status_msg, logger)
 
-    return git_status.commit_sha
+    return git_status.commit_info
 
 
-GitStatus = namedtuple("GitStatus", ["commit_sha",
+GitStatus = namedtuple("GitStatus", ["commit_info",
                                      "staged_files",
                                      "unstaged_files",
                                      "untracked_files",
                                      "total_changes"])
 
+CommitInfo = namedtuple("CommitInfo", ["sha",
+                                       "author",
+                                       "authored_datetime",
+                                       "committer",
+                                       "committed_datetime"])
+
 
 def _get_git_status(repo_path="", ignore_files_regex=None, ignore_untracked_files=False):
     repo = Repo(repo_path)
 
-    commit_sha      = repo.git.rev_parse(repo.head.commit.hexsha, short=7)
+    last_commit     = repo.head.commit
+    commit_info     = CommitInfo(repo.git.rev_parse(last_commit.hexsha, short=7),
+                                 last_commit.author.name,
+                                 last_commit.authored_datetime,
+                                 last_commit.committer.name,
+                                 last_commit.committed_datetime)
 
     filter_diff_fn  = lambda df: __filter_diff_file(df, ignore_files_regex)
     staged_files    = __filter_diff(repo.index.diff("HEAD"), filter_diff_fn)
@@ -74,7 +95,7 @@ def _get_git_status(repo_path="", ignore_files_regex=None, ignore_untracked_file
     if not ignore_untracked_files:
         total_changes += untracked_files
 
-    return GitStatus(commit_sha,
+    return GitStatus(commit_info,
                      staged_files,
                      unstaged_files,
                      untracked_files,
