@@ -3,7 +3,7 @@ from time import time
 from tests.functional_config.common import ExpectedResults, FuncTestConfig, test_configs
 
 
-test_id = "ignore files regex - complex"
+test_id = "ignore files regex (complex)"
 FOO_FILENAME = "{}.txt".format(str(time() * 1000))
 
 
